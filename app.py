@@ -107,7 +107,7 @@ def smallgiants(
     if not auth_key:
         raise HTTPException(status_code=500, detail="Missing WORK24_AUTH_KEY env var")
 
-    cache_key = (region, display, max_pages, sleep)
+    cache_key = (region, display, max_pages, sleep, company, match, normalize)
     items = cache_get(cache_key)
     if items is None:
         items = fetch_all(auth_key, region, display, max_pages, sleep)
