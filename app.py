@@ -70,17 +70,25 @@ def cache_set(key, value):
     _CACHE[key] = (time.time(), value)
 
 
-def fetch_all(auth_key, region, display, max_pages, sleep):
+def fetch_all(auth_key, region, display, max_pages, sleep, retries=2, backoff=0.5):
     display = max(1, min(100, display))
     all_items = []
     total_expected = None
 
     for page in range(1, max_pages + 1):
         url = build_url(auth_key, page, display, region)
-        try:
-            xml_bytes = fetch_xml(url)
-        except Exception as e:
-            raise HTTPException(status_code=502, detail=f"Upstream request failed: {e}")
+        last_err = None
+        for attempt in range(retries + 1):
+            try:
+                xml_bytes = fetch_xml(url)
+                last_err = None
+                break
+            except Exception as e:
+                last_err = e
+                if attempt < retries:
+                    time.sleep(backoff * (2 ** attempt))
+        if last_err is not None:
+            raise HTTPException(status_code=502, detail=f"Upstream request failed: {last_err}")
 
         items, total = parse_items(xml_bytes)
         if total_expected is None and total is not None:
