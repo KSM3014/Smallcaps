@@ -233,16 +233,11 @@ function updateSuggestions() {
 }
 
 companyInput.addEventListener("input", () => {
-  const value = companyInput.value.trim();
   if (inputTimer) clearTimeout(inputTimer);
   inputTimer = setTimeout(() => {
-    if (value.length >= 2) {
-      fetchData();
-    } else {
-      updateSuggestions();
-      syncQueryToUrl();
-    }
-  }, 400);
+    updateSuggestions();
+    syncQueryToUrl();
+  }, 200);
 });
 
 companySuggest.addEventListener("click", (e) => {
