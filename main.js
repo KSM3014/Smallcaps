@@ -14,6 +14,9 @@ const regionModal = document.getElementById("regionModal");
 const regionModalClose = document.getElementById("regionModalClose");
 const regionName = document.getElementById("regionName");
 const sortableHeaders = document.querySelectorAll("th[data-sort]");
+const prevPageBtn = document.getElementById("prevPage");
+const nextPageBtn = document.getElementById("nextPage");
+const pageInfo = document.getElementById("pageInfo");
 
 const REGION_MAP = {
   "11": "서울",
@@ -38,6 +41,7 @@ const REGION_MAP = {
 let currentItems = [];
 let sortKey = "";
 let sortAsc = true;
+let currentPage = 1;
 
 function buildParams() {
   const params = new URLSearchParams();
@@ -104,6 +108,34 @@ function applySort(items) {
   return sorted;
 }
 
+function getPageSize() {
+  const size = Number(displayInput.value) || 30;
+  return size;
+}
+
+function getSortedItems() {
+  return applySort(currentItems);
+}
+
+function updatePagination(totalItems) {
+  const pageSize = getPageSize();
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  if (currentPage > totalPages) currentPage = totalPages;
+  if (currentPage < 1) currentPage = 1;
+  pageInfo.textContent = `${currentPage} / ${totalPages}`;
+  prevPageBtn.disabled = currentPage <= 1;
+  nextPageBtn.disabled = currentPage >= totalPages;
+}
+
+function renderPage() {
+  const pageSize = getPageSize();
+  const sortedItems = getSortedItems();
+  updatePagination(sortedItems.length);
+  const start = (currentPage - 1) * pageSize;
+  const viewItems = sortedItems.slice(start, start + pageSize);
+  renderRows(viewItems);
+}
+
 async function fetchData() {
   setLoading(true);
   const params = buildParams();
@@ -114,10 +146,10 @@ async function fetchData() {
     }
     const data = await res.json();
     currentItems = data.items || [];
-    const viewItems = applySort(currentItems);
+    currentPage = 1;
     resultCount.textContent = `${data.count}건`;
     resultMeta.textContent = `조회 완료 (${new Date().toLocaleString()})`;
-    renderRows(viewItems);
+    renderPage();
   } catch (err) {
     resultMeta.textContent = `오류: ${err.message}`;
     resultBody.innerHTML = "";
@@ -131,6 +163,10 @@ form.addEventListener("submit", (e) => {
 });
 
 regionInput.addEventListener("change", updateRegionName);
+displayInput.addEventListener("change", () => {
+  currentPage = 1;
+  renderPage();
+});
 regionSearch.addEventListener("input", () => {
   const keyword = regionSearch.value.trim().toLowerCase();
   const options = Array.from(regionInput.options);
@@ -160,9 +196,19 @@ sortableHeaders.forEach((th) => {
       sortKey = key;
       sortAsc = true;
     }
-    const viewItems = applySort(currentItems);
-    renderRows(viewItems);
+    currentPage = 1;
+    renderPage();
   });
+});
+
+prevPageBtn.addEventListener("click", () => {
+  currentPage -= 1;
+  renderPage();
+});
+
+nextPageBtn.addEventListener("click", () => {
+  currentPage += 1;
+  renderPage();
 });
 
 function openModal() {

@@ -239,6 +239,18 @@ button.ghost {
   margin-bottom: 16px;
 }
 
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.pagination span {
+  color: var(--muted);
+  font-size: 14px;
+}
+
 .table-wrap {
   overflow-x: auto;
   border: 1px solid var(--border);
