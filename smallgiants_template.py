@@ -44,13 +44,28 @@ def parse_items(xml_bytes):
     return items, int(total) if total and total.isdigit() else None
 
 
-def filter_by_company(items, company_keyword, match):
+def normalize_company_name(value):
+    if value is None:
+        return ""
+    # Normalize: lowercase and remove whitespace/special characters
+    out = []
+    for ch in value.lower():
+        if ch.isalnum():
+            out.append(ch)
+    return "".join(out)
+
+
+def filter_by_company(items, company_keyword, match, normalize):
     if not company_keyword:
         return items
     key = company_keyword.lower()
+    if normalize:
+        key = normalize_company_name(company_keyword)
     out = []
     for it in items:
         name = (it.get("coNm") or "").lower()
+        if normalize:
+            name = normalize_company_name(name)
         if match == "exact":
             if name == key:
                 out.append(it)
@@ -102,6 +117,11 @@ def main():
         default="partial",
         help="Company name matching mode (default: partial)",
     )
+    parser.add_argument(
+        "--normalize",
+        action="store_true",
+        help="Normalize company names by removing whitespace/special chars before matching",
+    )
     parser.add_argument("--region", help="Region code (optional)", default="")
     parser.add_argument("--display", type=int, default=100, help="Results per page (max 100)")
     parser.add_argument("--max-pages", type=int, default=1000, help="Max pages to scan")
@@ -143,7 +163,7 @@ def main():
         if args.sleep > 0:
             time.sleep(args.sleep)
 
-    filtered = filter_by_company(all_items, args.company, args.match)
+    filtered = filter_by_company(all_items, args.company, args.match, args.normalize)
     write_output(filtered, args.format, args.output)
 
 
