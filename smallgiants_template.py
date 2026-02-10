@@ -3,6 +3,7 @@ import argparse
 import csv
 import json
 import os
+import sqlite3
 import sys
 import time
 import urllib.parse
@@ -105,6 +106,42 @@ def write_output(items, fmt, output_path):
     raise ValueError("Unsupported format: " + fmt)
 
 
+def save_sqlite(items, db_path):
+    conn = sqlite3.connect(db_path)
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS small_giant (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                corpNo TEXT,
+                coNm TEXT,
+                region TEXT,
+                winYear TEXT,
+                data_json TEXT
+            )
+            """
+        )
+        cur.execute("DELETE FROM small_giant")
+        for item in items:
+            cur.execute(
+                """
+                INSERT INTO small_giant (corpNo, coNm, region, winYear, data_json)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    item.get("corpNo", ""),
+                    item.get("coNm", ""),
+                    item.get("region", ""),
+                    item.get("winYear", ""),
+                    json.dumps(item, ensure_ascii=False),
+                ),
+            )
+        conn.commit()
+    finally:
+        conn.close()
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Fetch Work24 small-giant companies (강소기업) and optionally filter by company name."
@@ -127,6 +164,7 @@ def main():
     parser.add_argument("--max-pages", type=int, default=1000, help="Max pages to scan")
     parser.add_argument("--format", choices=["json", "csv"], default="json")
     parser.add_argument("--output", help="Output file path (optional)")
+    parser.add_argument("--sqlite", help="Write filtered results to a SQLite DB path")
     parser.add_argument("--sleep", type=float, default=0.0, help="Sleep seconds between requests")
     args = parser.parse_args()
 
@@ -165,6 +203,8 @@ def main():
 
     filtered = filter_by_company(all_items, args.company, args.match, args.normalize)
     write_output(filtered, args.format, args.output)
+    if args.sqlite:
+        save_sqlite(filtered, args.sqlite)
 
 
 if __name__ == "__main__":
