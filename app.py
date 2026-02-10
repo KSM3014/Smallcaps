@@ -12,6 +12,28 @@ from smallgiants_template import (
 
 app = FastAPI(title="Work24 Small-Giant API")
 
+CACHE_TTL_SECONDS = int(os.getenv("WORK24_CACHE_TTL_SECONDS", "300"))
+_CACHE = {}
+
+
+def cache_get(key):
+    if CACHE_TTL_SECONDS <= 0:
+        return None
+    entry = _CACHE.get(key)
+    if not entry:
+        return None
+    ts, value = entry
+    if (time.time() - ts) > CACHE_TTL_SECONDS:
+        _CACHE.pop(key, None)
+        return None
+    return value
+
+
+def cache_set(key, value):
+    if CACHE_TTL_SECONDS <= 0:
+        return
+    _CACHE[key] = (time.time(), value)
+
 
 def fetch_all(auth_key, region, display, max_pages, sleep):
     display = max(1, min(100, display))
@@ -57,7 +79,11 @@ def smallgiants(
     if not auth_key:
         raise HTTPException(status_code=500, detail="Missing WORK24_AUTH_KEY env var")
 
-    items = fetch_all(auth_key, region, display, max_pages, sleep)
+    cache_key = (region, display, max_pages, sleep)
+    items = cache_get(cache_key)
+    if items is None:
+        items = fetch_all(auth_key, region, display, max_pages, sleep)
+        cache_set(cache_key, items)
     filtered = filter_by_company(items, company, match, normalize)
     return {
         "count": len(filtered),
