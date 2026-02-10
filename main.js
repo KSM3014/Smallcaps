@@ -13,26 +13,6 @@ const nextPageBtn = document.getElementById("nextPage");
 const pageInfo = document.getElementById("pageInfo");
 const pageButtons = document.getElementById("pageButtons");
 
-const REGION_MAP = {
-  "11": "서울",
-  "26": "부산",
-  "27": "대구",
-  "28": "인천",
-  "29": "광주",
-  "30": "대전",
-  "31": "울산",
-  "36": "세종",
-  "41": "경기",
-  "42": "강원",
-  "43": "충북",
-  "44": "충남",
-  "45": "전북",
-  "46": "전남",
-  "47": "경북",
-  "48": "경남",
-  "50": "제주",
-};
-
 let currentItems = [];
 let sortKey = "";
 let sortAsc = true;
@@ -64,23 +44,21 @@ function setLoading(loading) {
 function renderRows(items) {
   resultBody.innerHTML = "";
   for (const item of items) {
-    const regionNameText = REGION_MAP[item.region] || "";
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${item.coNm || ""}</td>
-      <td>${item.CEO || ""}</td>
-      <td>${item.region || ""}</td>
-      <td>${regionNameText}</td>
-      <td>${item.winYear || ""}</td>
-      <td>${item.mainProduct || ""}</td>
-      <td>${item.firmSize || ""}</td>
+      <td>${item.reperNm || ""}</td>
+      <td>${item.regionCd || ""}</td>
+      <td>${item.regionNm || ""}</td>
+      <td>${item.selYear || ""}</td>
+      <td>${item.coMainProd || ""}</td>
+      <td>${item.sgBrandNm || ""}</td>
     `;
     resultBody.appendChild(tr);
   }
 }
 
 function getSortableValue(item, key) {
-  if (key === "regionName") return REGION_MAP[item.region] || "";
   return item[key] || "";
 }
 
