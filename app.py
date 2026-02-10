@@ -68,7 +68,32 @@ def fetch_all(auth_key, region, display, max_pages, sleep):
     return all_items
 
 
-@app.get("/smallgiants")
+@app.get(
+    "/smallgiants",
+    responses={
+        200: {
+            "content": {
+                "application/json": {
+                    "example": {
+                        "count": 1,
+                        "items": [
+                            {
+                                "corpNo": "1234567890",
+                                "coNm": "SME 스몰캡",
+                                "CEO": "홍길동",
+                                "coAddress": "서울특별시 ...",
+                                "region": "11",
+                                "winYear": "2024",
+                                "mainProduct": "소프트웨어",
+                                "firmSize": "중소기업",
+                            }
+                        ],
+                    }
+                }
+            }
+        }
+    },
+)
 def smallgiants(
     company: str = Query("", description="Company name keyword"),
     match: str = Query("partial", pattern="^(partial|exact)$"),
@@ -94,7 +119,18 @@ def smallgiants(
     }
 
 
-@app.get("/smallgiants.csv")
+@app.get(
+    "/smallgiants.csv",
+    responses={
+        200: {
+            "content": {
+                "text/csv": {
+                    "example": "corpNo,coNm,region,winYear\n1234567890,SME 스몰캡,11,2024\n"
+                }
+            }
+        }
+    },
+)
 def smallgiants_csv(
     company: str = Query("", description="Company name keyword"),
     match: str = Query("partial", pattern="^(partial|exact)$"),
