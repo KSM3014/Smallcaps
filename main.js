@@ -9,10 +9,6 @@ const resultBody = document.getElementById("resultBody");
 const resultCount = document.getElementById("resultCount");
 const resultMeta = document.getElementById("resultMeta");
 const csvBtn = document.getElementById("csvBtn");
-const regionInfoBtn = document.getElementById("regionInfoBtn");
-const regionModal = document.getElementById("regionModal");
-const regionModalClose = document.getElementById("regionModalClose");
-const regionName = document.getElementById("regionName");
 const sortableHeaders = document.querySelectorAll("th[data-sort]");
 const prevPageBtn = document.getElementById("prevPage");
 const nextPageBtn = document.getElementById("nextPage");
@@ -64,15 +60,6 @@ function setLoading(loading) {
   if (loading) {
     resultMeta.textContent = "불러오는 중...";
   }
-}
-
-function updateRegionName() {
-  const code = regionInput.value.trim();
-  if (!code) {
-    regionName.textContent = "지역명을 표시합니다.";
-    return;
-  }
-  regionName.textContent = REGION_MAP[code] ? `지역: ${REGION_MAP[code]}` : "알 수 없는 코드";
 }
 
 function renderRows(items) {
@@ -185,7 +172,6 @@ form.addEventListener("submit", (e) => {
   fetchData();
 });
 
-regionInput.addEventListener("change", updateRegionName);
 displayInput.addEventListener("change", () => {
   currentPage = 1;
   renderPage();
@@ -229,7 +215,6 @@ function applyStateFromQuery() {
   if (params.has("sort")) sortKey = params.get("sort") || "";
   if (params.has("order")) sortAsc = (params.get("order") || "asc") === "asc";
   if (params.has("page")) currentPage = Math.max(1, Number(params.get("page") || "1"));
-  updateRegionName();
   return params;
 }
 
@@ -275,24 +260,6 @@ nextPageBtn.addEventListener("click", () => {
   currentPage += 1;
   renderPage();
   syncQueryToUrl();
-});
-
-function openModal() {
-  regionModal.classList.add("open");
-  regionModal.setAttribute("aria-hidden", "false");
-}
-
-function closeModal() {
-  regionModal.classList.remove("open");
-  regionModal.setAttribute("aria-hidden", "true");
-}
-
-regionInfoBtn.addEventListener("click", openModal);
-regionModalClose.addEventListener("click", closeModal);
-regionModal.addEventListener("click", (e) => {
-  if (e.target && e.target.dataset && e.target.dataset.close === "true") {
-    closeModal();
-  }
 });
 
 initializeFromQuery();
