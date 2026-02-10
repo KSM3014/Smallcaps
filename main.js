@@ -66,11 +66,13 @@ function updateRegionName() {
 function renderRows(items) {
   resultBody.innerHTML = "";
   for (const item of items) {
+    const regionNameText = REGION_MAP[item.region] || "";
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${item.coNm || ""}</td>
       <td>${item.CEO || ""}</td>
       <td>${item.region || ""}</td>
+      <td>${regionNameText}</td>
       <td>${item.winYear || ""}</td>
       <td>${item.mainProduct || ""}</td>
       <td>${item.firmSize || ""}</td>
