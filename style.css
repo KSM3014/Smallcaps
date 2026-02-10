@@ -82,6 +82,31 @@ body {
   font-size: 14px;
 }
 
+.label-with-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 700;
+  position: relative;
+  top: -6px;
+}
+
+.info-icon:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
 .field input,
 .field select {
   background: var(--panel-2);
