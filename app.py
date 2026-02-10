@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 import csv
 import io
+import json
 import os
 import time
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import Response
+try:
+    import redis
+except Exception:
+    redis = None
 
 from smallgiants_template import (
     build_url,
@@ -17,11 +22,31 @@ app = FastAPI(title="Work24 Small-Giant API")
 
 CACHE_TTL_SECONDS = int(os.getenv("WORK24_CACHE_TTL_SECONDS", "300"))
 _CACHE = {}
+_REDIS_URL = os.getenv("REDIS_URL", "").strip()
+_REDIS = None
+if _REDIS_URL and redis is not None:
+    try:
+        _REDIS = redis.Redis.from_url(_REDIS_URL, decode_responses=False)
+        _REDIS.ping()
+    except Exception:
+        _REDIS = None
+
+
+def _cache_key_to_str(key):
+    return json.dumps(key, ensure_ascii=False, separators=(",", ":"))
 
 
 def cache_get(key):
     if CACHE_TTL_SECONDS <= 0:
         return None
+    if _REDIS is not None:
+        try:
+            value = _REDIS.get(_cache_key_to_str(key))
+            if value is None:
+                return None
+            return json.loads(value.decode("utf-8"))
+        except Exception:
+            pass
     entry = _CACHE.get(key)
     if not entry:
         return None
@@ -35,6 +60,13 @@ def cache_get(key):
 def cache_set(key, value):
     if CACHE_TTL_SECONDS <= 0:
         return
+    if _REDIS is not None:
+        try:
+            payload = json.dumps(value, ensure_ascii=False).encode("utf-8")
+            _REDIS.setex(_cache_key_to_str(key), CACHE_TTL_SECONDS, payload)
+            return
+        except Exception:
+            pass
     _CACHE[key] = (time.time(), value)
 
 
