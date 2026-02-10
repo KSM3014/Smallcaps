@@ -8,6 +8,9 @@ const resultBody = document.getElementById("resultBody");
 const resultCount = document.getElementById("resultCount");
 const resultMeta = document.getElementById("resultMeta");
 const csvBtn = document.getElementById("csvBtn");
+const regionInfoBtn = document.getElementById("regionInfoBtn");
+const regionModal = document.getElementById("regionModal");
+const regionModalClose = document.getElementById("regionModalClose");
 
 function buildParams() {
   const params = new URLSearchParams();
@@ -75,4 +78,22 @@ csvBtn.addEventListener("click", () => {
   params.set("format", "csv");
   const url = `/api/smallgiants?${params.toString()}`;
   window.location.href = url;
+});
+
+function openModal() {
+  regionModal.classList.add("open");
+  regionModal.setAttribute("aria-hidden", "false");
+}
+
+function closeModal() {
+  regionModal.classList.remove("open");
+  regionModal.setAttribute("aria-hidden", "true");
+}
+
+regionInfoBtn.addEventListener("click", openModal);
+regionModalClose.addEventListener("click", closeModal);
+regionModal.addEventListener("click", (e) => {
+  if (e.target && e.target.dataset && e.target.dataset.close === "true") {
+    closeModal();
+  }
 });

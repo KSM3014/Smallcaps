@@ -37,7 +37,7 @@
         <label class="field">
           <span class="label-with-info">
             지역 코드
-            <span class="info-icon" aria-label="지역코드 안내" title="시도 코드: 11(서울), 26(부산), 27(대구), 28(인천), 29(광주), 30(대전), 31(울산), 36(세종), 41(경기), 42(강원), 43(충북), 44(충남), 45(전북), 46(전남), 47(경북), 48(경남), 50(제주)">!</span>
+            <button id="regionInfoBtn" type="button" class="info-icon" aria-label="지역코드 안내" title="지역코드 전체 보기">!</button>
           </span>
           <input id="regionInput" type="text" placeholder="예: 11 (서울)" />
         </label>
@@ -76,6 +76,37 @@
         </table>
       </div>
     </section>
+  </div>
+
+  <div id="regionModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" data-close="true"></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="regionModalTitle">
+      <div class="modal-head">
+        <h3 id="regionModalTitle">지역 코드 안내</h3>
+        <button id="regionModalClose" type="button" class="ghost small">닫기</button>
+      </div>
+      <div class="modal-body">
+        <ul class="region-list">
+          <li>11 서울</li>
+          <li>26 부산</li>
+          <li>27 대구</li>
+          <li>28 인천</li>
+          <li>29 광주</li>
+          <li>30 대전</li>
+          <li>31 울산</li>
+          <li>36 세종</li>
+          <li>41 경기</li>
+          <li>42 강원</li>
+          <li>43 충북</li>
+          <li>44 충남</li>
+          <li>45 전북</li>
+          <li>46 전남</li>
+          <li>47 경북</li>
+          <li>48 경남</li>
+          <li>50 제주</li>
+        </ul>
+      </div>
+    </div>
   </div>
 
   <script defer type="text/javascript" src="/main.js"></script>
