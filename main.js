@@ -97,7 +97,7 @@ function applySort(items) {
 }
 
 function getPageSize() {
-  const size = Number(displayInput.value) || 30;
+  const size = Number(displayInput.value) || 10;
   return size;
 }
 
@@ -198,7 +198,7 @@ function applyStateFromQuery() {
   if (params.has("match")) matchSelect.value = params.get("match") || "partial";
   if (params.get("normalize") === "true") normalizeCheck.checked = true;
   if (params.has("region")) regionInput.value = params.get("region") || "";
-  if (params.has("display")) displayInput.value = params.get("display") || "30";
+  if (params.has("display")) displayInput.value = params.get("display") || "10";
   if (params.has("sort")) sortKey = params.get("sort") || "";
   if (params.has("order")) sortAsc = (params.get("order") || "asc") === "asc";
   if (params.has("page")) currentPage = Math.max(1, Number(params.get("page") || "1"));
