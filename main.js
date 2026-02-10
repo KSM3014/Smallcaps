@@ -3,6 +3,7 @@ const companyInput = document.getElementById("companyInput");
 const matchSelect = document.getElementById("matchSelect");
 const normalizeCheck = document.getElementById("normalizeCheck");
 const regionInput = document.getElementById("regionInput");
+const regionSearch = document.getElementById("regionSearch");
 const displayInput = document.getElementById("displayInput");
 const resultBody = document.getElementById("resultBody");
 const resultCount = document.getElementById("resultCount");
@@ -106,6 +107,18 @@ form.addEventListener("submit", (e) => {
 });
 
 regionInput.addEventListener("change", updateRegionName);
+regionSearch.addEventListener("input", () => {
+  const keyword = regionSearch.value.trim().toLowerCase();
+  const options = Array.from(regionInput.options);
+  for (const opt of options) {
+    if (!keyword) {
+      opt.hidden = false;
+      continue;
+    }
+    const text = opt.text.toLowerCase();
+    opt.hidden = !text.includes(keyword);
+  }
+});
 
 csvBtn.addEventListener("click", () => {
   const params = buildParams();

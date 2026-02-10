@@ -184,6 +184,11 @@ button.small {
   color: var(--text);
 }
 
+.region-select {
+  display: grid;
+  gap: 8px;
+}
+
 .field.checkbox {
   flex-direction: row;
   align-items: center;

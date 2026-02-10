@@ -39,7 +39,9 @@
             지역 코드
             <button id="regionInfoBtn" type="button" class="info-icon" aria-label="지역코드 안내" title="지역코드 전체 보기">!</button>
           </span>
-          <select id="regionInput">
+          <div class="region-select">
+            <input id="regionSearch" type="text" placeholder="지역명/코드 검색" />
+            <select id="regionInput">
             <option value="">전체</option>
             <option value="11">11 서울</option>
             <option value="26">26 부산</option>
@@ -58,7 +60,8 @@
             <option value="47">47 경북</option>
             <option value="48">48 경남</option>
             <option value="50">50 제주</option>
-          </select>
+            </select>
+          </div>
           <span id="regionName" class="hint">지역명을 표시합니다.</span>
         </label>
 
