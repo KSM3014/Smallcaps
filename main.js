@@ -17,6 +17,7 @@ const sortableHeaders = document.querySelectorAll("th[data-sort]");
 const prevPageBtn = document.getElementById("prevPage");
 const nextPageBtn = document.getElementById("nextPage");
 const pageInfo = document.getElementById("pageInfo");
+const pageButtons = document.getElementById("pageButtons");
 
 const REGION_MAP = {
   "11": "서울",
@@ -42,6 +43,7 @@ let currentItems = [];
 let sortKey = "";
 let sortAsc = true;
 let currentPage = 1;
+const PAGE_WINDOW = 10;
 
 function buildParams() {
   const params = new URLSearchParams();
@@ -125,6 +127,7 @@ function updatePagination(totalItems) {
   pageInfo.textContent = `${currentPage} / ${totalPages}`;
   prevPageBtn.disabled = currentPage <= 1;
   nextPageBtn.disabled = currentPage >= totalPages;
+  renderPageButtons(totalPages);
 }
 
 function renderPage() {
@@ -136,7 +139,26 @@ function renderPage() {
   renderRows(viewItems);
 }
 
-async function fetchData() {
+function renderPageButtons(totalPages) {
+  pageButtons.innerHTML = "";
+  const windowIndex = Math.floor((currentPage - 1) / PAGE_WINDOW);
+  const start = windowIndex * PAGE_WINDOW + 1;
+  const end = Math.min(start + PAGE_WINDOW - 1, totalPages);
+  for (let i = start; i <= end; i++) {
+    const btn = document.createElement("button");
+    btn.textContent = String(i);
+    if (i === currentPage) btn.classList.add("active");
+    btn.addEventListener("click", () => {
+      currentPage = i;
+      renderPage();
+      syncQueryToUrl();
+    });
+    pageButtons.appendChild(btn);
+  }
+}
+
+async function fetchData(options = {}) {
+  const { keepPage = false } = options;
   setLoading(true);
   const params = buildParams();
   try {
@@ -146,10 +168,11 @@ async function fetchData() {
     }
     const data = await res.json();
     currentItems = data.items || [];
-    currentPage = 1;
+    if (!keepPage) currentPage = 1;
     resultCount.textContent = `${data.count}건`;
     resultMeta.textContent = `조회 완료 (${new Date().toLocaleString()})`;
     renderPage();
+    syncQueryToUrl();
   } catch (err) {
     resultMeta.textContent = `오류: ${err.message}`;
     resultBody.innerHTML = "";
@@ -166,6 +189,7 @@ regionInput.addEventListener("change", updateRegionName);
 displayInput.addEventListener("change", () => {
   currentPage = 1;
   renderPage();
+  syncQueryToUrl();
 });
 regionSearch.addEventListener("input", () => {
   const keyword = regionSearch.value.trim().toLowerCase();
@@ -187,6 +211,45 @@ csvBtn.addEventListener("click", () => {
   window.location.href = url;
 });
 
+function buildQueryFromState() {
+  const params = buildParams();
+  params.set("page", String(currentPage));
+  if (sortKey) params.set("sort", sortKey);
+  params.set("order", sortAsc ? "asc" : "desc");
+  return params;
+}
+
+function applyStateFromQuery() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has("company")) companyInput.value = params.get("company") || "";
+  if (params.has("match")) matchSelect.value = params.get("match") || "partial";
+  if (params.get("normalize") === "true") normalizeCheck.checked = true;
+  if (params.has("region")) regionInput.value = params.get("region") || "";
+  if (params.has("display")) displayInput.value = params.get("display") || "30";
+  if (params.has("sort")) sortKey = params.get("sort") || "";
+  if (params.has("order")) sortAsc = (params.get("order") || "asc") === "asc";
+  if (params.has("page")) currentPage = Math.max(1, Number(params.get("page") || "1"));
+  updateRegionName();
+  return params;
+}
+
+function hasQueryParams(params) {
+  const keys = ["company", "match", "normalize", "region", "display", "sort", "order", "page"];
+  return keys.some((key) => params.has(key));
+}
+
+function syncQueryToUrl() {
+  const params = buildQueryFromState();
+  const newUrl = `${window.location.pathname}?${params.toString()}`;
+  window.history.replaceState({}, "", newUrl);
+}
+
+function initializeFromQuery() {
+  const params = applyStateFromQuery();
+  if (hasQueryParams(params)) {
+    fetchData({ keepPage: true });
+  }
+}
 sortableHeaders.forEach((th) => {
   th.addEventListener("click", () => {
     const key = th.dataset.sort;
@@ -198,17 +261,20 @@ sortableHeaders.forEach((th) => {
     }
     currentPage = 1;
     renderPage();
+    syncQueryToUrl();
   });
 });
 
 prevPageBtn.addEventListener("click", () => {
   currentPage -= 1;
   renderPage();
+  syncQueryToUrl();
 });
 
 nextPageBtn.addEventListener("click", () => {
   currentPage += 1;
   renderPage();
+  syncQueryToUrl();
 });
 
 function openModal() {
@@ -228,3 +294,5 @@ regionModal.addEventListener("click", (e) => {
     closeModal();
   }
 });
+
+initializeFromQuery();
