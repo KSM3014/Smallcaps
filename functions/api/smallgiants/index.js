@@ -111,6 +111,24 @@ async function fetchAll(authKey, region, display, maxPages, sleepMs, retries, ba
   return allItems;
 }
 
+async function fetchFirstPage(authKey, region, display) {
+  const params = new URLSearchParams({
+    authKey,
+    returnType: "XML",
+    startPage: "1",
+    display: String(display),
+  });
+  if (region) params.set("region", region);
+  const url = `${BASE_URL}?${params.toString()}`;
+  const res = await fetch(url, { headers: { "User-Agent": "smallcaps/1.0" } });
+  const text = await res.text();
+  return {
+    status: res.status,
+    contentType: res.headers.get("content-type") || "",
+    text,
+  };
+}
+
 function toCsv(items) {
   const headers = Array.from(
     items.reduce((set, item) => {
@@ -152,6 +170,31 @@ export async function onRequest(context) {
   const retries = Math.min(Math.max(Number(url.searchParams.get("retries") || 2), 0), 5);
   const backoffMs = Math.min(Math.max(Number(url.searchParams.get("backoffMs") || 500), 0), 5000);
   const format = (url.searchParams.get("format") || "json").toLowerCase();
+  const debug = url.searchParams.get("debug") === "1";
+
+  if (debug) {
+    try {
+      const first = await fetchFirstPage(authKey, region, display);
+      const parsed = parseItems(first.text);
+      const preview = first.text.slice(0, 1000);
+      return new Response(
+        JSON.stringify(
+          {
+            status: first.status,
+            contentType: first.contentType,
+            preview,
+            parsedCount: parsed.items.length,
+            parsedTotal: parsed.total,
+          },
+          null,
+          2
+        ),
+        { headers: { "Content-Type": "application/json; charset=utf-8" } }
+      );
+    } catch (err) {
+      return new Response(`Debug fetch failed: ${err}`, { status: 502 });
+    }
+  }
 
   const cacheKey = JSON.stringify({ region, display, maxPages, sleepMs, retries, backoffMs, company, match, normalize, format });
   let data = cacheGet(cacheKey);
