@@ -1,14 +1,80 @@
 <!doctype html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hello World</title>
-  <link href='/style.css' rel='stylesheet'>
+  <title>강소기업 검색</title>
+  <link href="/style.css" rel="stylesheet">
 </head>
 <body>
-  <h1>Hello, world!</h1>
-  <button onclick="console.log('hello');">Press me</button>
+  <div class="app">
+    <header class="hero">
+      <p class="eyebrow">Work24 OpenAPI</p>
+      <h1>강소기업 검색</h1>
+      <p class="sub">회사명 키워드로 강소기업 데이터를 조회합니다. 필요하면 CSV로 내려받을 수 있습니다.</p>
+    </header>
+
+    <section class="panel">
+      <form id="searchForm" class="form">
+        <label class="field">
+          <span>회사명</span>
+          <input id="companyInput" type="text" placeholder="예: SME 스몰캡" />
+        </label>
+
+        <label class="field">
+          <span>매칭</span>
+          <select id="matchSelect">
+            <option value="partial" selected>부분</option>
+            <option value="exact">정확</option>
+          </select>
+        </label>
+
+        <label class="field checkbox">
+          <input id="normalizeCheck" type="checkbox" />
+          <span>정규화(공백/특수문자 무시)</span>
+        </label>
+
+        <label class="field">
+          <span>지역 코드</span>
+          <input id="regionInput" type="text" placeholder="예: 11" />
+        </label>
+
+        <label class="field">
+          <span>페이지당 건수</span>
+          <input id="displayInput" type="number" min="1" max="100" value="100" />
+        </label>
+
+        <div class="actions">
+          <button id="searchBtn" type="submit">검색</button>
+          <button id="csvBtn" type="button" class="ghost">CSV 다운로드</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel results">
+      <div class="result-head">
+        <h2>검색 결과</h2>
+        <span id="resultCount">0건</span>
+      </div>
+      <div id="resultMeta" class="meta"></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>기업명</th>
+              <th>대표자</th>
+              <th>지역</th>
+              <th>선정년도</th>
+              <th>주요품목</th>
+              <th>규모</th>
+            </tr>
+          </thead>
+          <tbody id="resultBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
   <script defer type="text/javascript" src="/main.js"></script>
 </body>
 </html>
