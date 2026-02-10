@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
+import csv
+import io
 import os
 import time
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import Response
 
 from smallgiants_template import (
     build_url,
@@ -89,3 +92,34 @@ def smallgiants(
         "count": len(filtered),
         "items": filtered,
     }
+
+
+@app.get("/smallgiants.csv")
+def smallgiants_csv(
+    company: str = Query("", description="Company name keyword"),
+    match: str = Query("partial", pattern="^(partial|exact)$"),
+    normalize: bool = Query(False, description="Normalize company names before matching"),
+    region: str = Query("", description="Region code (optional)"),
+    display: int = Query(100, ge=1, le=100),
+    max_pages: int = Query(1000, ge=1, le=5000),
+    sleep: float = Query(0.0, ge=0.0, le=5.0),
+):
+    auth_key = os.getenv("WORK24_AUTH_KEY")
+    if not auth_key:
+        raise HTTPException(status_code=500, detail="Missing WORK24_AUTH_KEY env var")
+
+    cache_key = (region, display, max_pages, sleep)
+    items = cache_get(cache_key)
+    if items is None:
+        items = fetch_all(auth_key, region, display, max_pages, sleep)
+        cache_set(cache_key, items)
+
+    filtered = filter_by_company(items, company, match, normalize)
+    headers = sorted({k for item in filtered for k in item.keys()})
+    output = io.StringIO()
+    writer = csv.DictWriter(output, fieldnames=headers)
+    writer.writeheader()
+    for item in filtered:
+        writer.writerow(item)
+    data = output.getvalue().encode("utf-8")
+    return Response(content=data, media_type="text/csv; charset=utf-8")
