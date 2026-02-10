@@ -138,6 +138,7 @@ async function fetchFirstPage(authKey, region, display) {
     status: res.status,
     contentType: res.headers.get("content-type") || "",
     text,
+    url,
   };
 }
 
@@ -189,7 +190,7 @@ export async function onRequest(context) {
       const first = await fetchFirstPage(authKey, region, display);
       const parsed = parseItems(first.text);
       const preview = first.text.slice(0, 1000);
-      const redactedUrl = url.toString().replace(authKey, "REDACTED");
+      const redactedUrl = first.url.replace(authKey, "REDACTED");
       return new Response(
         JSON.stringify(
           {
