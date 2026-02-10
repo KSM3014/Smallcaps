@@ -137,6 +137,7 @@ export async function onRequest(context) {
   const url = new URL(request.url);
 
   const authKey = env.WORK24_AUTH_KEY;
+  const commonKey = env.WORK24_COMMON_KEY;
   if (!authKey) {
     return new Response("Missing WORK24_AUTH_KEY", { status: 500 });
   }
@@ -175,7 +176,14 @@ export async function onRequest(context) {
     });
   }
 
-  return new Response(JSON.stringify(data), {
+  const payload = {
+    ...data,
+    meta: {
+      work24AuthKeyPresent: !!authKey,
+      work24CommonKeyPresent: !!commonKey,
+    },
+  };
+  return new Response(JSON.stringify(payload), {
     headers: { "Content-Type": "application/json; charset=utf-8" },
   });
 }
