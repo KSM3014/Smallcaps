@@ -3,13 +3,11 @@ const companyInput = document.getElementById("companyInput");
 const matchSelect = document.getElementById("matchSelect");
 const normalizeCheck = document.getElementById("normalizeCheck");
 const regionInput = document.getElementById("regionInput");
-const regionSearch = document.getElementById("regionSearch");
 const displayInput = document.getElementById("displayInput");
 const resultBody = document.getElementById("resultBody");
 const resultCount = document.getElementById("resultCount");
 const resultMeta = document.getElementById("resultMeta");
 const csvBtn = document.getElementById("csvBtn");
-const regionInfoBtn = document.getElementById("regionInfoBtn");
 const sortableHeaders = document.querySelectorAll("th[data-sort]");
 const prevPageBtn = document.getElementById("prevPage");
 const nextPageBtn = document.getElementById("nextPage");
@@ -178,18 +176,6 @@ displayInput.addEventListener("change", () => {
   renderPage();
   syncQueryToUrl();
 });
-regionSearch.addEventListener("input", () => {
-  const keyword = regionSearch.value.trim().toLowerCase();
-  const options = Array.from(regionInput.options);
-  for (const opt of options) {
-    if (!keyword) {
-      opt.hidden = false;
-      continue;
-    }
-    const text = opt.text.toLowerCase();
-    opt.hidden = !text.includes(keyword);
-  }
-});
 
 csvBtn.addEventListener("click", () => {
   const params = buildParams();
@@ -264,74 +250,3 @@ nextPageBtn.addEventListener("click", () => {
 });
 
 initializeFromQuery();
-
-let tooltipEl = null;
-
-function ensureTooltip() {
-  if (tooltipEl) return tooltipEl;
-  tooltipEl = document.createElement("div");
-  tooltipEl.className = "tooltip-bubble";
-  document.body.appendChild(tooltipEl);
-  return tooltipEl;
-}
-
-function positionTooltip(target, tooltip) {
-  const padding = 10;
-  const rect = target.getBoundingClientRect();
-  const tooltipRect = tooltip.getBoundingClientRect();
-  let top = rect.top - tooltipRect.height - 8;
-  let left = rect.left + rect.width + 8;
-
-  if (top < padding) {
-    top = rect.bottom + 8;
-  }
-  if (left + tooltipRect.width > window.innerWidth - padding) {
-    left = rect.left - tooltipRect.width - 8;
-  }
-  if (left < padding) left = padding;
-  if (top + tooltipRect.height > window.innerHeight - padding) {
-    top = window.innerHeight - tooltipRect.height - padding;
-  }
-  tooltip.style.top = `${top}px`;
-  tooltip.style.left = `${left}px`;
-}
-
-function showTooltip() {
-  if (!regionInfoBtn) return;
-  const tooltip = ensureTooltip();
-  tooltip.textContent = regionInfoBtn.getAttribute("data-tooltip") || "";
-  tooltip.classList.add("show");
-  positionTooltip(regionInfoBtn, tooltip);
-}
-
-function hideTooltip() {
-  if (!tooltipEl) return;
-  tooltipEl.classList.remove("show");
-}
-
-if (regionInfoBtn) {
-  regionInfoBtn.addEventListener("mouseenter", showTooltip);
-  regionInfoBtn.addEventListener("mouseleave", hideTooltip);
-  regionInfoBtn.addEventListener("focus", showTooltip);
-  regionInfoBtn.addEventListener("blur", hideTooltip);
-  regionInfoBtn.addEventListener("touchstart", (e) => {
-    e.preventDefault();
-    if (tooltipEl && tooltipEl.classList.contains("show")) {
-      hideTooltip();
-    } else {
-      showTooltip();
-    }
-  });
-}
-
-document.addEventListener("click", (e) => {
-  if (!tooltipEl || !tooltipEl.classList.contains("show")) return;
-  if (regionInfoBtn && (e.target === regionInfoBtn || regionInfoBtn.contains(e.target))) return;
-  hideTooltip();
-});
-
-window.addEventListener("resize", () => {
-  if (tooltipEl && tooltipEl.classList.contains("show") && regionInfoBtn) {
-    positionTooltip(regionInfoBtn, tooltipEl);
-  }
-});
