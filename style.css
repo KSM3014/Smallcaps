@@ -109,14 +109,9 @@ body {
   background: rgba(255, 255, 255, 0.22);
 }
 
-.info-icon::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  top: -8px;
-  right: -6px;
-  transform: translate(100%, -100%);
-  white-space: pre-line;
-  width: 240px;
+.tooltip-bubble {
+  position: fixed;
+  max-width: 260px;
   background: #0d1218;
   border: 1px solid var(--border);
   color: var(--text);
@@ -125,13 +120,14 @@ body {
   font-size: 12px;
   line-height: 1.4;
   box-shadow: var(--shadow);
+  z-index: 60;
+  white-space: pre-line;
   opacity: 0;
+  transition: opacity 0.12s ease;
   pointer-events: none;
-  transition: opacity 0.15s ease;
-  z-index: 5;
 }
 
-.info-icon:hover::after {
+.tooltip-bubble.show {
   opacity: 1;
 }
 
