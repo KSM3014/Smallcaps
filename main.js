@@ -1,7 +1,6 @@
 const form = document.getElementById("searchForm");
 const companyInput = document.getElementById("companyInput");
-const matchSelect = document.getElementById("matchSelect");
-const normalizeCheck = document.getElementById("normalizeCheck");
+const companySuggest = document.getElementById("companySuggest");
 const regionInput = document.getElementById("regionInput");
 const displayInput = document.getElementById("displayInput");
 const resultBody = document.getElementById("resultBody");
@@ -39,6 +38,8 @@ let sortKey = "";
 let sortAsc = true;
 let currentPage = 1;
 const PAGE_WINDOW = 10;
+let lastQuery = "";
+let inputTimer = null;
 
 function buildParams() {
   const params = new URLSearchParams();
@@ -47,8 +48,7 @@ function buildParams() {
   const display = displayInput.value.trim();
 
   if (company) params.set("company", company);
-  params.set("match", matchSelect.value);
-  if (normalizeCheck.checked) params.set("normalize", "true");
+  params.set("normalize", "true");
   if (region) params.set("region", region);
   if (display) params.set("display", display);
 
@@ -84,8 +84,32 @@ function getSortableValue(item, key) {
   return item[key] || "";
 }
 
+function normalizeName(value) {
+  return String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function relevanceScore(name, query) {
+  const n = normalizeName(name);
+  const q = normalizeName(query);
+  if (!q) return 0;
+  if (!n.includes(q)) return 0;
+  if (n === q) return 100;
+  let score = n.startsWith(q) ? 60 : 40;
+  score += Math.min(30, Math.round((q.length / n.length) * 30));
+  return score;
+}
+
 function applySort(items) {
   if (!sortKey) return items;
+  if (sortKey === "relevance") {
+    const sorted = [...items].sort((a, b) => {
+      const av = relevanceScore(a.coNm, lastQuery);
+      const bv = relevanceScore(b.coNm, lastQuery);
+      if (av !== bv) return sortAsc ? bv - av : av - bv;
+      return String(a.coNm || "").localeCompare(String(b.coNm || ""));
+    });
+    return sorted;
+  }
   const sorted = [...items].sort((a, b) => {
     const av = String(getSortableValue(a, sortKey)).toLowerCase();
     const bv = String(getSortableValue(b, sortKey)).toLowerCase();
@@ -102,6 +126,10 @@ function getPageSize() {
 }
 
 function getSortedItems() {
+  if (!sortKey && lastQuery) {
+    sortKey = "relevance";
+    sortAsc = true;
+  }
   return applySort(currentItems);
 }
 
@@ -154,10 +182,12 @@ async function fetchData(options = {}) {
     }
     const data = await res.json();
     currentItems = data.items || [];
+    lastQuery = companyInput.value.trim();
     if (!keepPage) currentPage = 1;
     resultCount.textContent = `${data.count}건`;
     resultMeta.textContent = `조회 완료 (${new Date().toLocaleString()})`;
     renderPage();
+    updateSuggestions();
     syncQueryToUrl();
   } catch (err) {
     resultMeta.textContent = `오류: ${err.message}`;
@@ -169,6 +199,66 @@ async function fetchData(options = {}) {
 form.addEventListener("submit", (e) => {
   e.preventDefault();
   fetchData();
+});
+
+function updateSuggestions() {
+  const query = companyInput.value.trim();
+  if (!query || currentItems.length === 0) {
+    companySuggest.classList.remove("show");
+    companySuggest.setAttribute("aria-hidden", "true");
+    companySuggest.innerHTML = "";
+    return;
+  }
+  const ranked = [...currentItems]
+    .map((item) => ({
+      name: item.coNm || "",
+      score: relevanceScore(item.coNm, query),
+    }))
+    .filter((item) => item.score > 0 && item.name)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3);
+
+  if (ranked.length === 0) {
+    companySuggest.classList.remove("show");
+    companySuggest.setAttribute("aria-hidden", "true");
+    companySuggest.innerHTML = "";
+    return;
+  }
+
+  companySuggest.innerHTML = ranked
+    .map((item) => `<div class="suggest-item" data-name="${item.name}">${item.name}</div>`)
+    .join("");
+  companySuggest.classList.add("show");
+  companySuggest.setAttribute("aria-hidden", "false");
+}
+
+companyInput.addEventListener("input", () => {
+  const value = companyInput.value.trim();
+  if (inputTimer) clearTimeout(inputTimer);
+  inputTimer = setTimeout(() => {
+    if (value.length >= 2) {
+      fetchData();
+    } else {
+      updateSuggestions();
+      syncQueryToUrl();
+    }
+  }, 400);
+});
+
+companySuggest.addEventListener("click", (e) => {
+  const target = e.target;
+  if (!target || !target.dataset || !target.dataset.name) return;
+  companyInput.value = target.dataset.name;
+  companySuggest.classList.remove("show");
+  companySuggest.setAttribute("aria-hidden", "true");
+  fetchData();
+});
+
+document.addEventListener("click", (e) => {
+  if (!companySuggest) return;
+  if (e.target === companyInput || companySuggest.contains(e.target)) return;
+  companySuggest.classList.remove("show");
+  companySuggest.setAttribute("aria-hidden", "true");
 });
 
 displayInput.addEventListener("change", () => {
@@ -195,8 +285,6 @@ function buildQueryFromState() {
 function applyStateFromQuery() {
   const params = new URLSearchParams(window.location.search);
   if (params.has("company")) companyInput.value = params.get("company") || "";
-  if (params.has("match")) matchSelect.value = params.get("match") || "partial";
-  if (params.get("normalize") === "true") normalizeCheck.checked = true;
   if (params.has("region")) regionInput.value = params.get("region") || "";
   if (params.has("display")) displayInput.value = params.get("display") || "10";
   if (params.has("sort")) sortKey = params.get("sort") || "";
@@ -206,7 +294,7 @@ function applyStateFromQuery() {
 }
 
 function hasQueryParams(params) {
-  const keys = ["company", "match", "normalize", "region", "display", "sort", "order", "page"];
+  const keys = ["company", "normalize", "region", "display", "sort", "order", "page"];
   return keys.some((key) => params.has(key));
 }
 

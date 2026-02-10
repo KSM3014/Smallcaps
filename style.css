@@ -91,6 +91,42 @@ body {
   color: var(--text);
 }
 
+.autocomplete {
+  position: relative;
+}
+
+.suggest-list {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  display: none;
+  z-index: 20;
+}
+
+.suggest-list.show {
+  display: block;
+}
+
+.suggest-item {
+  padding: 10px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+
+.suggest-item:last-child {
+  border-bottom: none;
+}
+
+.suggest-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
 .field.checkbox {
   flex-direction: row;
   align-items: center;

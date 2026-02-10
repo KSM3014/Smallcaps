@@ -18,20 +18,10 @@
       <form id="searchForm" class="form">
         <label class="field">
           <span>회사명</span>
-          <input id="companyInput" type="text" placeholder="예: 카카오" />
-        </label>
-
-        <label class="field">
-          <span>매칭</span>
-          <select id="matchSelect">
-            <option value="partial" selected>부분</option>
-            <option value="exact">정확</option>
-          </select>
-        </label>
-
-        <label class="field checkbox">
-          <input id="normalizeCheck" type="checkbox" />
-          <span>정규화(공백/특수문자 무시)</span>
+          <div class="autocomplete">
+            <input id="companyInput" type="text" placeholder="예: 카카오" autocomplete="off" />
+            <div id="companySuggest" class="suggest-list" aria-hidden="true"></div>
+          </div>
         </label>
 
         <label class="field">
