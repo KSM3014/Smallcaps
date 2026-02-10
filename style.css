@@ -82,6 +82,11 @@ body {
   font-size: 14px;
 }
 
+.hint {
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .label-with-info {
   display: inline-flex;
   align-items: center;

@@ -11,6 +11,27 @@ const csvBtn = document.getElementById("csvBtn");
 const regionInfoBtn = document.getElementById("regionInfoBtn");
 const regionModal = document.getElementById("regionModal");
 const regionModalClose = document.getElementById("regionModalClose");
+const regionName = document.getElementById("regionName");
+
+const REGION_MAP = {
+  "11": "서울",
+  "26": "부산",
+  "27": "대구",
+  "28": "인천",
+  "29": "광주",
+  "30": "대전",
+  "31": "울산",
+  "36": "세종",
+  "41": "경기",
+  "42": "강원",
+  "43": "충북",
+  "44": "충남",
+  "45": "전북",
+  "46": "전남",
+  "47": "경북",
+  "48": "경남",
+  "50": "제주",
+};
 
 function buildParams() {
   const params = new URLSearchParams();
@@ -31,6 +52,15 @@ function setLoading(loading) {
   if (loading) {
     resultMeta.textContent = "불러오는 중...";
   }
+}
+
+function updateRegionName() {
+  const code = regionInput.value.trim();
+  if (!code) {
+    regionName.textContent = "지역명을 표시합니다.";
+    return;
+  }
+  regionName.textContent = REGION_MAP[code] ? `지역: ${REGION_MAP[code]}` : "알 수 없는 코드";
 }
 
 function renderRows(items) {
@@ -72,6 +102,8 @@ form.addEventListener("submit", (e) => {
   e.preventDefault();
   fetchData();
 });
+
+regionInput.addEventListener("input", updateRegionName);
 
 csvBtn.addEventListener("click", () => {
   const params = buildParams();
