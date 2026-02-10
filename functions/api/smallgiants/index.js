@@ -86,7 +86,13 @@ async function fetchAll(authKey, region, display, maxPages, sleepMs, retries, ba
     let lastErr = null;
     for (let attempt = 0; attempt <= retries; attempt++) {
       try {
-        const res = await fetch(url, { headers: { "User-Agent": "smallcaps/1.0" } });
+        const res = await fetch(url, {
+          headers: {
+            "User-Agent": "smallcaps/1.0",
+            Accept: "application/xml,text/xml;q=0.9,*/*;q=0.8",
+            Referer: "https://www.work24.go.kr/",
+          },
+        });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         xmlText = await res.text();
         lastErr = null;
@@ -120,7 +126,13 @@ async function fetchFirstPage(authKey, region, display) {
   });
   if (region) params.set("region", region);
   const url = `${BASE_URL}?${params.toString()}`;
-  const res = await fetch(url, { headers: { "User-Agent": "smallcaps/1.0" } });
+  const res = await fetch(url, {
+    headers: {
+      "User-Agent": "smallcaps/1.0",
+      Accept: "application/xml,text/xml;q=0.9,*/*;q=0.8",
+      Referer: "https://www.work24.go.kr/",
+    },
+  });
   const text = await res.text();
   return {
     status: res.status,
@@ -177,11 +189,13 @@ export async function onRequest(context) {
       const first = await fetchFirstPage(authKey, region, display);
       const parsed = parseItems(first.text);
       const preview = first.text.slice(0, 1000);
+      const redactedUrl = url.toString().replace(authKey, "REDACTED");
       return new Response(
         JSON.stringify(
           {
             status: first.status,
             contentType: first.contentType,
+            upstreamUrl: redactedUrl,
             preview,
             parsedCount: parsed.items.length,
             parsedTotal: parsed.total,
