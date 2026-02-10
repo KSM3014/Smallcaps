@@ -105,7 +105,7 @@ form.addEventListener("submit", (e) => {
   fetchData();
 });
 
-regionInput.addEventListener("input", updateRegionName);
+regionInput.addEventListener("change", updateRegionName);
 
 csvBtn.addEventListener("click", () => {
   const params = buildParams();
