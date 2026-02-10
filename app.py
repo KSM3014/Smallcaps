@@ -158,4 +158,5 @@ def smallgiants_csv(
     for item in filtered:
         writer.writerow(item)
     data = output.getvalue().encode("utf-8")
-    return Response(content=data, media_type="text/csv; charset=utf-8")
+    headers = {"Content-Disposition": "attachment; filename=smallgiants.csv"}
+    return Response(content=data, media_type="text/csv; charset=utf-8", headers=headers)
