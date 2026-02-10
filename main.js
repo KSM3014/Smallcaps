@@ -6,6 +6,7 @@ const displayInput = document.getElementById("displayInput");
 const resultBody = document.getElementById("resultBody");
 const resultCount = document.getElementById("resultCount");
 const resultMeta = document.getElementById("resultMeta");
+const resultParams = document.getElementById("resultParams");
 const csvBtn = document.getElementById("csvBtn");
 const sortableHeaders = document.querySelectorAll("th[data-sort]");
 const prevPageBtn = document.getElementById("prevPage");
@@ -149,6 +150,16 @@ function renderPageButtons(totalPages) {
   }
 }
 
+function renderParamSummary() {
+  if (!resultParams) return;
+  const params = buildQueryFromState();
+  const entries = [];
+  for (const [k, v] of params.entries()) {
+    entries.push(`${k}=${v}`);
+  }
+  resultParams.textContent = entries.length ? `파라미터: ${entries.join(", ")}` : "";
+}
+
 async function fetchData(options = {}) {
   const { keepPage = false } = options;
   setLoading(true);
@@ -164,11 +175,13 @@ async function fetchData(options = {}) {
     if (!keepPage) currentPage = 1;
     resultCount.textContent = `${data.count}건`;
     resultMeta.textContent = `조회 완료 (${new Date().toLocaleString()})`;
+    renderParamSummary();
     renderPage();
     updateSuggestions();
     syncQueryToUrl();
   } catch (err) {
     resultMeta.textContent = `오류: ${err.message}`;
+    if (resultParams) resultParams.textContent = "";
     resultBody.innerHTML = "";
     resultCount.textContent = "0건";
   }
@@ -275,6 +288,7 @@ function syncQueryToUrl() {
   const params = buildQueryFromState();
   const newUrl = `${window.location.pathname}?${params.toString()}`;
   window.history.replaceState({}, "", newUrl);
+  renderParamSummary();
 }
 
 function initializeFromQuery() {
