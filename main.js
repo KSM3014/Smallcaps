@@ -13,6 +13,7 @@ const regionInfoBtn = document.getElementById("regionInfoBtn");
 const regionModal = document.getElementById("regionModal");
 const regionModalClose = document.getElementById("regionModalClose");
 const regionName = document.getElementById("regionName");
+const sortableHeaders = document.querySelectorAll("th[data-sort]");
 
 const REGION_MAP = {
   "11": "서울",
@@ -33,6 +34,10 @@ const REGION_MAP = {
   "48": "경남",
   "50": "제주",
 };
+
+let currentItems = [];
+let sortKey = "";
+let sortAsc = true;
 
 function buildParams() {
   const params = new URLSearchParams();
@@ -82,6 +87,23 @@ function renderRows(items) {
   }
 }
 
+function getSortableValue(item, key) {
+  if (key === "regionName") return REGION_MAP[item.region] || "";
+  return item[key] || "";
+}
+
+function applySort(items) {
+  if (!sortKey) return items;
+  const sorted = [...items].sort((a, b) => {
+    const av = String(getSortableValue(a, sortKey)).toLowerCase();
+    const bv = String(getSortableValue(b, sortKey)).toLowerCase();
+    if (av < bv) return sortAsc ? -1 : 1;
+    if (av > bv) return sortAsc ? 1 : -1;
+    return 0;
+  });
+  return sorted;
+}
+
 async function fetchData() {
   setLoading(true);
   const params = buildParams();
@@ -91,9 +113,11 @@ async function fetchData() {
       throw new Error(`API 오류: ${res.status}`);
     }
     const data = await res.json();
+    currentItems = data.items || [];
+    const viewItems = applySort(currentItems);
     resultCount.textContent = `${data.count}건`;
     resultMeta.textContent = `조회 완료 (${new Date().toLocaleString()})`;
-    renderRows(data.items || []);
+    renderRows(viewItems);
   } catch (err) {
     resultMeta.textContent = `오류: ${err.message}`;
     resultBody.innerHTML = "";
@@ -125,6 +149,20 @@ csvBtn.addEventListener("click", () => {
   params.set("format", "csv");
   const url = `/api/smallgiants?${params.toString()}`;
   window.location.href = url;
+});
+
+sortableHeaders.forEach((th) => {
+  th.addEventListener("click", () => {
+    const key = th.dataset.sort;
+    if (sortKey === key) {
+      sortAsc = !sortAsc;
+    } else {
+      sortKey = key;
+      sortAsc = true;
+    }
+    const viewItems = applySort(currentItems);
+    renderRows(viewItems);
+  });
 });
 
 function openModal() {

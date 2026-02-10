@@ -255,6 +255,15 @@ th, td {
 th {
   background: rgba(255, 255, 255, 0.03);
   font-weight: 600;
+  cursor: pointer;
+  position: relative;
+}
+
+th[data-sort]::after {
+  content: "↕";
+  color: var(--muted);
+  font-size: 11px;
+  margin-left: 6px;
 }
 
 tbody tr:hover {
